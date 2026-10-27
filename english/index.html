@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔦 English Challenge — 第五人格篇</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans HK', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0a0a0a;
+    color: #c8c8c8;
+    min-height: 100vh;
+    line-height: 1.6;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(139,0,0,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(0,50,100,0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(100,0,50,0.1) 0%, transparent 50%);
+  }
+  .app { max-width: 800px; margin: 0 auto; padding: 20px; }
+
+  .header { text-align: center; padding: 40px 0 20px; position: relative; }
+  .header::after {
+    content: ''; display: block; width: 80px; height: 3px;
+    background: linear-gradient(90deg, transparent, #8b0000, transparent);
+    margin: 15px auto 0;
+  }
+  .header h1 {
+    font-size: 2.2em; font-weight: 900; letter-spacing: 4px;
+    background: linear-gradient(135deg, #c0c0c0, #ffffff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header .subtitle {
+    color: #8b4513; font-size: 0.85em; letter-spacing: 2px;
+    margin-top: 8px; font-weight: 700;
+  }
+
+  .progress-container { background: #1a1a1a; border: 1px solid #2a2a2a; padding: 3px; margin: 15px 0; }
+  .progress-bar { height: 10px; background: linear-gradient(90deg, #4a0, #8b0000); transition: width 0.5s ease; width: 0%; }
+  .progress-text { text-align: center; font-size: 0.75em; color: #666; margin-top: 5px; }
+
+  .level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin: 20px 0; }
+  .level-btn {
+    background: #111; border: 1px solid #222; padding: 12px 6px; text-align: center;
+    cursor: pointer; transition: all 0.3s; color: #555; position: relative; overflow: hidden;
+  }
+  .level-btn:hover { border-color: #8b0000; transform: translateY(-2px); }
+  .level-btn.active { border-color: #c0c0c0; background: #1a1a1a; color: #fff; }
+  .level-btn.active::after { content: '▶'; position: absolute; top: 2px; right: 4px; font-size: 0.6em; color: #8b0000; }
+  .level-btn.completed { border-color: #4a4a4a; color: #888; }
+  .level-btn.completed .icon { filter: grayscale(0.5); }
+  .level-btn.locked { opacity: 0.25; cursor: not-allowed; }
+  .level-btn .icon { font-size: 1.6em; display: block; margin-bottom: 4px; }
+  .level-btn .name { font-size: 0.7em; font-weight: 700; }
+  .level-btn .stars { font-size: 0.6em; margin-top: 3px; }
+
+  .card { background: #0d0d0d; border: 1px solid #222; padding: 25px; margin: 15px 0; }
+  .card h2 { font-size: 1.2em; margin-bottom: 5px; color: #d4d4d4; letter-spacing: 1px; font-weight: 700; }
+  .card .subtitle { color: #666; font-size: 0.8em; margin-bottom: 15px; border-bottom: 1px solid #1a1a1a; padding-bottom: 10px; }
+
+  .question { margin: 12px 0; padding: 15px; background: #0f0f0f; border-left: 2px solid #222; }
+  .question .q-text { font-weight: 700; margin-bottom: 10px; font-size: 0.95em; color: #ddd; }
+  .question .q-hint { font-size: 0.8em; color: #888; margin-bottom: 8px; font-style: italic; }
+  .question .options { display: flex; flex-direction: column; gap: 5px; }
+  .question .options label {
+    display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+    border: 1px solid #1a1a1a; background: #121212; cursor: pointer; transition: all 0.2s; font-size: 0.85em;
+  }
+  .question .options label:hover { border-color: #333; background: #181818; }
+  .question .options input[type="radio"] { accent-color: #8b0000; }
+  .question .fill-in {
+    width: 100%; padding: 8px; border: 1px solid #222; background: #111;
+    color: #c8c8c8; font-size: 0.9em; margin-top: 5px;
+  }
+  .question .fill-in:focus { outline: none; border-color: #8b0000; }
+  .question .result { margin-top: 8px; font-size: 0.8em; display: none; }
+  .question .result.correct { color: #4caf50; display: block; }
+  .question .result.wrong { color: #8b0000; display: block; }
+
+  .btn {
+    background: #1a1a1a; border: 1px solid #333; padding: 10px 24px;
+    font-size: 0.9em; font-weight: 700; color: #c0c0c0;
+    cursor: pointer; transition: all 0.3s; letter-spacing: 1px;
+  }
+  .btn:hover { border-color: #8b0000; color: #fff; }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-primary { background: #222; border-color: #555; }
+  .btn-primary:hover { border-color: #c0c0c0; }
+
+  .final-screen { text-align: center; padding: 50px 0; }
+  .final-screen .big-icon { font-size: 4em; margin-bottom: 15px; }
+  .final-screen h2 { color: #d4d4d4; font-size: 1.3em; letter-spacing: 2px; }
+
+  .explain-box { border-left: 2px solid #444; padding: 8px 12px; margin: 8px 0; font-size: 0.8em; color: #888; background: #0a0a0a; }
+  .hint-box { border-left: 2px solid #8b4513; padding: 6px 10px; margin: 5px 0; font-size: 0.78em; color: #a0a0a0; background: #0d0d0d; }
+
+  .hidden { display: none !important; }
+  .mt-10 { margin-top: 10px; }
+  .mb-10 { margin-bottom: 10px; }
+  .text-center { text-align: center; }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .level-grid { grid-template-columns: repeat(3, 1fr); }
+    .app { padding: 10px; }
+    .card { padding: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+const levels = [
+  {
+    id: 1, icon: '🎭', name: '職業配對', color: '#4fc3f7',
+    characters: ['幸運兒', '醫生', '律師'],
+    questions: [
+      { type: 'mcq', q: 'Lucky wants to help people. Which job is best for him?',
+        options: ['pilot — fly planes', 'social worker — help people in need', 'firefighter — rescue people from fires'],
+        answer: 1, explain: '✅ Social worker 社工 — help people in need（幫有需要嘅人）<br>📖 Ch1 p.3-4' },
+      { type: 'mcq', q: 'What does a police officer do?',
+        options: ['interview people', 'speak for people in court', 'protect people and fight crime'],
+        answer: 2, explain: '✅ Police officer 警察 — protect people and fight crime（保護市民、打擊罪案）<br>📖 Ch1 p.3-4' },
+      { type: 'mcq', q: "Match: A lawyer's duty to ______.",
+        options: ['design buildings', 'speak for people in court', 'cure sick animals'],
+        answer: 1, explain: '✅ Lawyer 律師 — speak for people in court（喺法庭幫人講嘢）<br>📖 Ch1 p.3-4' },
+      { type: 'mcq', q: 'What does an astronaut do?',
+        options: ['explore space', 'run a company', 'design clothes'],
+        answer: 0, explain: '✅ Astronaut 太空人 — explore space（探索太空）<br>📖 Ch1 p.3-4' },
+      { type: 'fill', q: 'A vet is a doctor for ______.',
+        answer: 'animals', explain: '✅ Vet 獸醫 — cure sick animals（醫病嘅動物）<br>📖 Ch1 p.3-4' } ]
+  },
+  {
+    id: 2, icon: '📖', name: '夢想職業', color: '#ff8a65',
+    characters: ['園丁', '前鋒', '機械師'],
+    questions: [
+          { type: 'mcq', q: 'What does "What do you want to be when you grow up?" mean?',
+            options: ['What do you want to do now?', 'What do you want to be when you are older?', 'What do you like doing?'],
+            answer: 1, explain: '✅ 「你大個想做咩？」— Ch1 p.3' },
+          { type: 'mcq', q: '"I want to be a fashion designer because I love ______."',
+            options: ['designing clothes', 'flying planes', 'rescuing people'],
+            answer: 0, explain: '✅ Fashion designer 時裝設計師 — design clothes（設計衫）<br>📖 Ch1 p.3-4' },
+          { type: 'fill', q: 'Complete: "I want to be a pilot. I will ______ planes."',
+            answer: 'fly', explain: '✅ Pilot 機師 — fly planes（揸飛機）<br>📖 Ch1 p.3-4' },
+          { type: 'mcq', q: 'What does an architect do?',
+            options: ['design buildings', 'design clothes', 'design computer programs'],
+            answer: 0, explain: '✅ Architect 建築師 — design buildings（設計建築物）<br>📖 Ch1 p.3-4' },
+          { type: 'mcq', q: 'Which sentence is correct?',
+            options: ['She want to be a doctor.', 'She wants to be a doctor.', 'She wanting to be a doctor.'],
+            answer: 1, explain: '✅ He/She/It 要用 wants（第三人稱單數）<br>📖 Ch1 Grammar' } ]
+      },
+      {
+        id: 3, icon: '🎯', name: '工作要求', color: '#81c784',
+        characters: ['紅蝶', '傑克', '蜘蛛'],
+        questions: [
+          { type: 'mcq', q: 'What do nurses need to be?',
+            options: ['caring — care for and support others', 'talkative — enjoy talking', 'good-looking — attractive'],
+            answer: 0, explain: '✅ Nurses need to be caring（關心人）<br>📖 Ch2 p.13-14' },
+          { type: 'mcq', q: 'A teacher needs to be ______. This means "not get angry easily".',
+            options: ['patient', 'outgoing', 'creative'],
+            answer: 0, explain: '✅ Patient = 有耐性 = not get angry easily<br>📖 Ch2 p.13-14' },
+          { type: 'fill', q: 'Complete: Flight attendants need to be ______. (pay attention to others)',
+            answer: 'attentive', explain: '✅ Flight attendants need to be attentive（細心、留意人需要）<br>📖 Ch2 p.13-14' },
+          { type: 'mcq', q: 'What does "If" mean in: "If I become a vet, I will help animals."',
+            options: ['because', 'if', 'so'],
+            answer: 1, explain: '✅ "If I become... I will..." = 如果我成為...我就會...<br>📖 Ch2 Grammar' },
+          { type: 'mcq', q: '"I practise every day ______ I can improve." Which word fits?',
+            options: ['because', 'so that', 'if'],
+            answer: 1, explain: '✅ "I practise every day so that I can improve." = 為咗可以進步<br>📖 Ch2 p.23' } ]
+      },
+      {
+        id: 4, icon: '🧩', name: '特別職業', color: '#ba68c8',
+        characters: ['盲女', '祭司', '入殮師'],
+        questions: [
+          { type: 'mcq', q: 'What does a pet cafe owner need to be?',
+            options: ['attentive and caring', 'only good-looking', 'talkative and outgoing'],
+            answer: 0, explain: '✅ Pet cafe owner needs to be attentive and caring（細心同關心）<br>📖 Ch2 p.15' },
+          { type: 'mcq', q: 'Food vlogger Victor Ho says: "I need to be ______ to come up with new ideas."',
+            options: ['hard-working', 'creative', 'patient'],
+            answer: 1, explain: '✅ Food vlogger needs to be creative（有創意）<br>📖 Ch2 p.16' },
+          { type: 'fill', q: 'Complete: "Pet cafe owners ______ to be attentive and caring."',
+            answer: 'need', explain: '✅ "need to be + adjective" = 需要係...<br>📖 Ch2 p.23' },
+          { type: 'mcq', q: 'What does "so that" mean in: "I practise every day so that I can improve."',
+            options: ['because', 'so that / in order to', 'although'],
+            answer: 1, explain: '✅ "so that" = 為咗、以便 — 表示目的<br>📖 Ch2 p.23' },
+          { type: 'fill', q: 'Complete: "I want to be a social worker ______ I can help people in need."',
+            answer: 'so that', explain: '✅ "...so that I can help people in need." = 為咗幫助有需要嘅人<br>📖 Ch2 p.23' } ]
+      },
+      {
+        id: 5, icon: '🌪️', name: '天災救援', color: '#4dd0e1',
+        characters: ['傭兵', '空軍', '調香師'],
+        questions: [
+          { type: 'mcq', q: 'Which of these is a natural disaster?',
+            options: ['typhoon', 'birthday party', 'school exam'],
+            answer: 0, explain: '✅ Typhoon（颱風）is a natural disaster<br>📖 Ch3 p.24' },
+          { type: 'mcq', q: 'Present perfect: "The typhoon ______ (hit) the Philippines."',
+            options: ['has hitted', 'has hit', 'have hit'],
+            answer: 1, explain: '✅ "The typhoon has hit the Philippines."（颱風吹襲咗菲律賓）<br>📖 Ch3 p.30' },
+          { type: 'fill', q: 'Use present perfect: "Drought ______ (affect) many countries this year."',
+            answer: 'has affected', explain: '✅ "Drought has affected many countries this year."（乾旱今年影響咗好多國家）<br>📖 Ch3 p.30' },
+          { type: 'mcq', q: 'What does "since" mean? "Many people left since the typhoon."',
+            options: ['because / since', 'so', 'although'],
+            answer: 0, explain: '✅ "Since" = 因為 / 自從 — 表示原因或時間起點<br>📖 Ch3 p.24' },
+          { type: 'mcq', q: 'Which sentence uses "either...or" correctly?',
+            options: ['We can either help by donating money or volunteering.', 'We either can help by donating money or volunteering.', 'Either we can help by donating money or volunteering.'],
+            answer: 0, explain: '✅ "either...or" 結構：either + A + or + B<br>📖 Ch3 p.24' } ]
+      },
+      {
+        id: 6, icon: '💬', name: '呼籲行動', color: '#ffb74d',
+        characters: ['探長', '慈善家', '冒險家'],
+        questions: [
+          { type: 'mcq', q: 'What is "Shall we" used for? "Shall we help the victims?"',
+            options: ['making suggestions', 'asking questions', 'talking about the past'],
+            answer: 0, explain: '✅ "Shall we...?" = 我哋...好唔好？用嚟提出建議<br>📖 Ch3 p.24' },
+          { type: 'mcq', q: '"Neither the government ______ the charity can solve this alone."',
+            options: ['or', 'nor', 'and'],
+            answer: 1, explain: '✅ "Neither...nor" = 兩者都唔...<br>📖 Ch3 p.24' },
+          { type: 'fill', q: 'Complete: "The situation is ______ difficult for us." (too / so / very)',
+            answer: 'too', explain: '✅ "too + adjective" = 太...（超出可以應付嘅程度）<br>📖 Ch3 p.24' },
+          { type: 'mcq', q: 'How should you start a speech asking for help?',
+            options: ["Good morning everyone. I'm here to ask for your help...", "The end thank you.", "Once upon a time..."],
+            answer: 0, explain: '✅ Speech 開頭應該打招呼然後講目的<br>📖 Ch3 Task p.24' },
+          { type: 'fill', q: 'Translate: "We can ______ donate money ______ volunteer."<br>（either...or）',
+            answer: 'either or', explain: '✅ "We can either donate money or volunteer."<br>📖 Ch3 p.24' } ]
+      },
+      {
+        id: 7, icon: '🏆', name: '最終逃脫', color: '#ffd700',
+        characters: ['全體角色'],
+        questions: [
+          { type: 'mcq', q: 'A person who flies planes is a ______.',
+            options: ['flight attendant', 'pilot', 'astronaut'],
+            answer: 1, explain: '✅ Pilot 機師 — flies planes（揸飛機）<br>📖 Ch1 p.3-4' },
+          { type: 'mcq', q: '"A social worker needs to be ______."',
+            options: ['creative', 'calm', 'caring'],
+            answer: 2, explain: '✅ Social worker needs to be caring（關心人）<br>📖 Ch2 p.13-14' },
+          { type: 'fill', q: 'Present perfect: "The earthquake ______ (destroy) many homes."',
+            answer: 'has destroyed', explain: '✅ "The earthquake has destroyed many homes."<br>📖 Ch3 p.30' },
+          { type: 'mcq', q: '"I want to be a vet ______ I love animals."',
+            options: ['because', 'so that', 'if'],
+            answer: 0, explain: '✅ "I want to be a vet because I love animals."（因為我鍾意動物）' },
+          { type: 'fill', q: 'Translate: "He is very ______. He does not get angry easily."',
+            answer: 'patient', explain: '✅ Patient = 有耐性 = not get angry easily<br>📖 Ch2 p.13-14' } ]
+  }
+];
+
+// ============== STATE ==============
+let state = { currentLevel: 0, completed: {}, stars: {}, answers: {} };
+
+function initState() {
+  const saved = localStorage.getItem('engChallengeIDV');
+  if (saved) { state = JSON.parse(saved); }
+  else { state = { currentLevel: 0, completed: {}, stars: {}, answers: {} }; saveState(); }
+}
+function saveState() { localStorage.setItem('engChallengeIDV', JSON.stringify(state)); }
+function resetProgress() {
+  state = { currentLevel: 0, completed: {}, stars: {}, answers: {} };
+  saveState(); render();
+}
+
+function render() {
+  const app = document.getElementById('app');
+  let html = '';
+
+  html += `<div class="header"><h1>🔦 English Challenge</h1><div class="subtitle">—— 第Ⅴ人格·英文特訓 ——</div></div>`;
+
+  const totalQ = levels.reduce((s,l) => s + l.questions.length, 0);
+  const doneQ = Object.values(state.answers).filter(a => a !== undefined && a !== '').length;
+  const pct = Math.round((doneQ / totalQ) * 100);
+  html += `<div class="progress-container"><div class="progress-bar" style="width:${pct}%"></div></div>`;
+  html += `<div class="progress-text">破譯 ${doneQ} / ${totalQ} 條線索 · 解鎖 ${Object.keys(state.completed).length} / 7 章</div>`;
+
+  html += `<div class="level-grid">`;
+  levels.forEach((lvl, i) => {
+    const isUnlocked = i === 0 || state.completed[i-1];
+    const isCompleted = state.completed[i];
+    const starCount = state.stars[i] || 0;
+    let cls = 'level-btn';
+    if (isCompleted) cls += ' completed';
+    else if (state.currentLevel === i) cls += ' active';
+    else if (!isUnlocked) cls += ' locked';
+    html += `<div class="${cls}" onclick="goToLevel(${i})">
+      <div class="icon">${lvl.icon}</div>
+      <div class="name">${lvl.name}</div>
+      <div class="stars">${'★'.repeat(starCount)}${'☆'.repeat(5-starCount)}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  const lvl = levels[state.currentLevel];
+  html += `<div class="card"><h2>${lvl.icon} Chapter ${state.currentLevel+1}：${lvl.name}</h2>`;
+  html += `<div class="subtitle">角色：${lvl.characters.join('、')} · 答啱 4/5 就過關</div>`;
+
+  lvl.questions.forEach((q, qi) => {
+    const ans = state.answers[`${state.currentLevel}_${qi}`];
+    const checked = ans !== undefined && ans !== '';
+    let correct = false;
+    if (checked) {
+      if (q.type === 'mcq') correct = parseInt(ans) === q.answer;
+      else correct = ans.toString().trim().toLowerCase() === q.answer.toString().trim().toLowerCase();
+    }
+    html += `<div class="question">`;
+    html += `<div class="q-text">${q.q}</div>`;
+
+    if (q.type === 'mcq') {
+      html += `<div class="options">`;
+      q.options.forEach((opt, oi) => {
+        const sel = parseInt(ans) === oi ? 'checked' : '';
+        html += `<label>
+          <input type="radio" name="q_${state.currentLevel}_${qi}" value="${oi}" ${sel} onchange="answer(${state.currentLevel},${qi},${oi})">
+          ${opt}
+        </label>`;
+      });
+      html += `</div>`;
+    } else {
+      const val = ans || '';
+      html += `<input class="fill-in" type="text" value="${val}" placeholder="輸入英文答案..." onchange="answer(${state.currentLevel},${qi},this.value)">`;
+    }
+
+    if (checked) {
+      html += `<div class="result ${correct ? 'correct' : 'wrong'}">
+        ${correct ? '✅ 線索破譯成功！' : '❌ 線索錯誤，再試試'}
+        <div class="explain-box">💡 ${q.explain}</div>
+      </div>`;
+    }
+    html += `</div>`;
+  });
+
+  const ansInLevel = lvl.questions.filter((q, qi) => {
+    const a = state.answers[`${state.currentLevel}_${qi}`];
+    if (a === undefined || a === '') return false;
+    if (q.type === 'mcq') return parseInt(a) === q.answer;
+    return a.toString().trim().toLowerCase() === q.answer.toString().trim().toLowerCase();
+  }).length;
+  const passed = ansInLevel >= 4;
+
+  html += `<div class="flex-between mt-10">`;
+  html += `<button class="btn" onclick="prevLevel()" ${state.currentLevel === 0 ? 'disabled':''}>⬅ 上章</button>`;
+  if (passed) {
+    html += `<button class="btn btn-primary" onclick="completeLevel()">✅ 逃脫成功！下章 ➡</button>`;
+  } else {
+    html += `<button class="btn" onclick="render()">✓ 檢查線索</button>`;
+  }
+  html += `</div></div>`;
+
+  if (state.completed[6]) {
+    const totalStars = Object.values(state.stars).reduce((a,b) => a+b, 0);
+    html += `<div class="final-screen">
+      <div class="big-icon">🏆</div>
+      <h2>🎉 全部逃脫成功！</h2>
+      <p>你獲得咗 ${totalStars} / 35 ⭐</p>
+      <p style="color:#666;font-size:0.8em;margin-top:10px;">莊園嘅英文秘密已經全部解開...</p>
+      <button class="btn btn-primary mt-10" onclick="resetProgress()">🔄 重新開始</button>
+    </div>`;
+  }
+
+  html += `<div class="text-center mt-10"><button class="btn" onclick="if(confirm('確定重置所有進度？'))resetProgress()" style="font-size:0.8em;color:#555;">🔄 重置進度</button></div>`;
+
+  app.innerHTML = html;
+}
+
+function answer(lvl, qi, val) {
+  state.answers[`${lvl}_${qi}`] = val;
+  saveState();
+}
+
+function completeLevel() {
+  const lvl = state.currentLevel;
+  const qs = levels[lvl].questions;
+  const correct = qs.filter((q, qi) => {
+    const a = state.answers[`${lvl}_${qi}`];
+    if (a === undefined || a === '') return false;
+    if (q.type === 'mcq') return parseInt(a) === q.answer;
+    return a.toString().trim().toLowerCase() === q.answer.toString().trim().toLowerCase();
+  }).length;
+  state.stars[lvl] = Math.min(correct, 5);
+  state.completed[lvl] = true;
+  if (lvl < levels.length - 1) state.currentLevel = lvl + 1;
+  saveState(); render();
+}
+
+function goToLevel(i) {
+  const isUnlocked = i === 0 || state.completed[i-1];
+  if (isUnlocked || state.completed[i]) { state.currentLevel = i; saveState(); render(); }
+}
+
+function prevLevel() {
+  if (state.currentLevel > 0) { state.currentLevel--; saveState(); render(); }
+}
+
+initState();
+render();
+</script>
+</body>
+</html>
