@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧊 數學大挑戰 — 第五人格篇</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;700;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans HK', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0a0a0a;
+    color: #c8c8c8;
+    min-height: 100vh;
+    line-height: 1.6;
+    background-image: 
+      radial-gradient(ellipse at 20% 50%, rgba(139,0,0,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(0,50,100,0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(100,0,50,0.1) 0%, transparent 50%);
+  }
+  .app {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* Header — like IDV login screen */
+  .header {
+    text-align: center;
+    padding: 40px 0 20px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    width: 80px; height: 3px;
+    background: linear-gradient(90deg, transparent, #8b0000, transparent);
+    margin: 15px auto 0;
+  }
+ .header h1 {
+    font-size: 2.2em;
+    font-weight: 900;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, #c0c0c0, #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 40px rgba(255,255,255,0.1);
+  }
+  .header .subtitle {
+    color: #8b4513;
+    font-size: 0.85em;
+    letter-spacing: 2px;
+    margin-top: 8px;
+    font-weight: 700;
+  }
+
+  /* Cipher-like border */
+  .cipher-box {
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+    position: relative;
+    background: #0d0d0d;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 30px rgba(0,0,0,0.3);
+  }
+  .cipher-box::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 20%; right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #444, transparent);
+  }
+
+  /* Progress */
+  .progress-container {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    padding: 3px;
+    margin: 15px 0;
+    position: relative;
+  }
+  .progress-bar {
+    height: 10px;
+    background: linear-gradient(90deg, #4a0, #8b0000);
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+  .progress-text {
+    text-align: center;
+    font-size: 0.75em;
+    color: #666;
+    margin-top: 5px;
+  }
+
+  /* Level selector — like IDV character select */
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin: 20px 0;
+  }
+  .level-btn {
+    background: #111;
+    border: 1px solid #222;
+    padding: 12px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #555;
+    position: relative;
+    overflow: hidden;
+  }
+  .level-btn:hover { border-color: #8b0000; transform: translateY(-2px); }
+  .level-btn.active { border-color: #c0c0c0; background: #1a1a1a; color: #fff; }
+  .level-btn.active::after {
+    content: '▶';
+    position: absolute;
+    top: 2px; right: 4px;
+    font-size: 0.6em;
+    color: #8b0000;
+  }
+  .level-btn.completed { border-color: #4a4a4a; color: #888; }
+  .level-btn.completed .icon { filter: grayscale(0.5); }
+  .level-btn.locked { opacity: 0.25; cursor: not-allowed; }
+  .level-btn .icon { font-size: 1.6em; display: block; margin-bottom: 4px; }
+  .level-btn .name { font-size: 0.7em; font-weight: 700; }
+  .level-btn .stars { font-size: 0.6em; margin-top: 3px; }
+
+  /* Card — like IDV letter/journal style */
+  .card {
+    background: #0d0d0d;
+    border: 1px solid #222;
+    padding: 25px;
+    margin: 15px 0;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.3);
+  }
+  .card h2 {
+    font-size: 1.2em;
+    margin-bottom: 5px;
+    color: #d4d4d4;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+  .card .subtitle {
+    color: #666;
+    font-size: 0.8em;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #1a1a1a;
+    padding-bottom: 10px;
+  }
+
+  /* Question */
+  .question { margin: 12px 0; padding: 15px; background: #0f0f0f; border-left: 2px solid #222; }
+  .question .q-text { font-weight: 700; margin-bottom: 10px; font-size: 0.95em; color: #ddd; }
+  .question .options { display: flex; flex-direction: column; gap: 5px; }
+  .question .options label {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px;
+    border: 1px solid #1a1a1a;
+    background: #121212;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85em;
+  }
+  .question .options label:hover { border-color: #333; background: #181818; }
+  .question .options input[type="radio"] { accent-color: #8b0000; }
+  .question .fill-in {
+    width: 100%; padding: 8px;
+    border: 1px solid #222; background: #111;
+    color: #c8c8c8;
+    font-size: 0.9em; margin-top: 5px;
+  }
+  .question .fill-in:focus { outline: none; border-color: #8b0000; }
+  .question .result { margin-top: 8px; font-size: 0.8em; display: none; }
+  .question .result.correct { color: #4caf50; display: block; }
+  .question .result.wrong { color: #8b0000; display: block; }
+
+  /* Buttons */
+  .btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    padding: 10px 24px;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: #c0c0c0;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 1px;
+  }
+  .btn:hover { border-color: #8b0000; color: #fff; }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-primary {
+    background: #222;
+    border-color: #555;
+  }
+  .btn-primary:hover { border-color: #c0c0c0; }
+
+  /* Final */
+  .final-screen { text-align: center; padding: 50px 0; }
+  .final-screen .big-icon { font-size: 4em; margin-bottom: 15px; }
+  .final-screen h2 { color: #d4d4d4; font-size: 1.3em; letter-spacing: 2px; }
+
+  /* Explain box */
+  .explain-box {
+    border-left: 2px solid #444;
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 0.8em;
+    color: #888;
+    background: #0a0a0a;
+  }
+
+  .hidden { display: none !important; }
+  .mt-10 { margin-top: 10px; }
+  .mb-10 { margin-bottom: 10px; }
+  .text-center { text-align: center; }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .level-grid { grid-template-columns: repeat(3, 1fr); }
+    .app { padding: 10px; }
+    .card { padding: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ============== WORKSHOP DATA ==============
+const levels = [
+  {
+    id: 1, icon: '🧊', name: '莊園·體積', color: '#4fc3f7',
+    characters: ['園丁', '前鋒', '機械師'],
+    questions: [
+      { type: 'mcq', q: '園丁想計算一個工具箱的體積，以下邊個方法啱？', 
+        options: ['量度長闊高然後相乘', '磅下重量', '倒水入去', '睇下外表'],
+        answer: 0, explain: '體積 = 長 × 闊 × 高，呢個係計算長方體體積嘅標準方法。' },
+      { type: 'mcq', q: '1 L（升）等於幾多 cm³？',
+        options: ['10 cm³', '100 cm³', '1000 cm³', '10000 cm³'],
+        answer: 2, explain: '1 L = 1000 cm³，呢個係標準單位換算。' },
+      { type: 'mcq', q: '前鋒用排水法量度一塊石頭嘅體積，原理係咩？',
+        options: ['石頭嘅重量等於排出水嘅重量', '石頭嘅體積等於排出水嘅體積', '水嘅溫度會改變', '石頭會溶喺水入面'],
+        answer: 1, explain: '排水法原理：物體放入水中，排出嘅水體積等於物體體積。' },
+      { type: 'mcq', q: '一個正方體禮物盒長闊高都係 2 cm，體積係？',
+        options: ['4 cm³', '6 cm³', '8 cm³', '12 cm³'],
+        answer: 2, explain: '2 × 2 × 2 = 8 cm³' },
+      { type: 'mcq', q: '機械師要整一個 1 m³ 嘅木箱，即係等於幾多 cm³？',
+        options: ['100 cm³', '1000 cm³', '10000 cm³', '1000000 cm³'],
+        answer: 3, explain: '1 m = 100 cm，所以 1 m³ = 100×100×100 = 1,000,000 cm³' },
+    ]
+  },
+  {
+    id: 2, icon: '➗', name: '監管·小數', color: '#8b0000',
+    characters: ['紅蝶', '傑克', '蜘蛛'],
+    questions: [
+      { type: 'mcq', q: '紅蝶嘅追蹤距是 12.6 米，分 3 段追，每段距是多少？',
+        options: ['3.2', '4.2', '4.6', '42'],
+        answer: 1, explain: '12.6 ÷ 3 = 4.2' },
+      { type: 'mcq', q: '傑克嘅霧區半徑 5.6 米，以下邊個情況半徑最大？',
+        options: ['5.6 ÷ 8', '5.6 ÷ 0.8', '5.6 ÷ 0.08', '5.6 ÷ 80'],
+        answer: 2, explain: '除數越細，商越大。0.08 係最細嘅除數。' },
+      { type: 'mcq', q: '蜘蛛整 12 張網，每張用 _.75 米絲，共用絲多少？',
+        options: ['7.5', '8', '9', '9.5'],
+        answer: 2, explain: '0.75 × 12 = 9' },
+      { type: 'fill', q: '16.8 ÷ 0.4 = ______',
+        answer: '42', explain: '16.8 ÷ 0.4 = 168 ÷ 4 = 42' },
+      { type: 'mcq', q: '每張角色卡 $8.5，買 6 張，共需？',
+        options: ['$48', '$49', '$51', '$54'],
+        answer: 2, explain: '8.5 × 6 = 51' },
+    ]
+  },
+  {
+    id: 3, icon: '🔄', name: '破譯·混合', color: '#81c784',
+    characters: ['幸運兒', '醫生', '律師'],
+    questions: [
+      { type: 'mcq', q: '幸運兒解碼：3.2 × 4 + 2.5 = ?',
+        options: ['12.8', '14.3', '15.3', '16.8'],
+        answer: 2, explain: '先乘除後加減：3.2×4=12.8，12.8+2.5=15.3' },
+      { type: 'mcq', q: '醫生治療：5.4 + 3.6 ÷ 1.2 = ?',
+        options: ['7.5', '8.4', '9.0', '10.2'],
+        answer: 1, explain: '先除後加：3.6÷1.2=3，5.4+3=8.4' },
+      { type: 'mcq', q: '律師計分：(4.5 + 3.5) × 2 = ?',
+        options: ['8', '12', '14', '16'],
+        answer: 3, explain: '先括號後乘：4.5+3.5=8，8×2=16' },
+      { type: 'fill', q: '2.5 × (6 - 2.4) = ______',
+        answer: '9', explain: '6-2.4=3.6，2.5×3.6=9' },
+      { type: 'mcq', q: '運算順序正確嘅係？',
+        options: ['加→減→乘→除', '括號→乘除→加減', '乘→除→加→減', '由左至右'],
+        answer: 1, explain: '運算順序：括號最優先，然後乘除，最後加減。' },
+    ]
+  },
+  {
+    id: 4, icon: '🔁', name: '謎鏡·轉換', color: '#ba68c8',
+    characters: ['盲女', '祭司', '入殮師'],
+    questions: [
+      { type: 'mcq', q: '盲女用 0.5 秒解一個機關，即係幾多分數秒？',
+        options: ['1/3', '1/4', '1/2', '2/3'],
+        answer: 2, explain: '0.5 = 1/2' },
+      { type: 'mcq', q: '祭司嘅通道維持 3/4 秒，即係幾多小數？',
+        options: ['0.25', '0.5', '0.75', '0.8'],
+        answer: 2, explain: '3 ÷ 4 = 0.75' },
+      { type: 'fill', q: '入殮師嘅靈柩出現機率 0.625，化成分數係______',
+        answer: '5/8', explain: '0.625 = 625/1000 = 5/8' },
+      { type: 'mcq', q: '以下邊個機率最大？',
+        options: ['0.3', '0.33', '0.333', '0.03'],
+        answer: 2, explain: '0.333 係最大。' },
+      { type: 'mcq', q: '1/5 嘅機率等於幾多 %？',
+        options: ['5%', '10%', '15%', '20%'],
+        answer: 3, explain: '1/5 = 0.2 = 20%' },
+    ]
+  },
+  {
+    id: 5, icon: '📊', name: '逃脫·平均', color: '#4dd0e1',
+    characters: ['傭兵', '空軍', '調香師'],
+    questions: [
+      { type: 'mcq', q: '傭兵 5 次救援時間：14, 14.5, 15, 15.5, 16 秒。平均時間係？',
+        options: ['14.5', '14.8', '15', '15.5'],
+        answer: 2, explain: '(14+14.5+15+15.5+16)÷5 = 75÷5 = 15' },
+      { type: 'mcq', q: '空軍 3 次射擊平均 85 分，第 4 次 95 分，新平均係？',
+        options: ['86', '87.5', '88', '90'],
+        answer: 1, explain: '(85×3+95)÷4 = (255+95)÷4 = 350÷4 = 87.5' },
+      { type: 'fill', q: '4 場遊戲平均 12 分鐘，3 場平均 10 分鐘，7 場總時間係______',
+        answer: '78', explain: '4×12=48，3×10=30，48+30=78 分鐘' },
+      { type: 'mcq', q: '以下邊個情況會令平均數變得唔準確？',
+        options: ['數据好平均', '有極端值（特然大或特然細）', '數據好多', '數據好少'],
+        answer: 1, explain: '極端值會拉高或拉低平均數，令佢失去代表性。' },
+      { type: 'mcq', q: '30 個玩加平均等級 10，新來一個 11 級嘅，新平均約係？',
+        options: ['10.03', '10.1', '10.3', '11'],
+        answer: 0, explain: '(30×10+11)÷31 = 311÷31 ≈ 10.03' },
+    ]
+  },
+  {
+    id: 6, icon: '📈', name: '線索·圖表', color: '#ffb74d',
+    characters: ['探長', '慈善家', '冒險家'],
+    questions: [
+      { type: 'mcq', q: '探長要比較兩個月嘅線索數量，用邊種圖最好？',
+        options: ['圓形圖', '折線圖', '複合棒形圖', '象形圖'],
+        answer: 2, explain: '複合棒形圖可以同時比較兩組或以上嘅數據。' },
+      { type: 'mcq', q: '複合棒形圖同普通棒形圖最大分別係？',
+        options: ['顏不同', '可以顯示兩組或以上數據', '棒形係打橫', '冇分別'],
+        answer: 1, explain: '複合棒形圖嘅最大特點係可以同時比較多組數據。' },
+      { type: 'mcq', q: '睇複合棒形圖時，首先要留意咩？',
+        options: ['顏色', '標題同圖例', '棒嘅高度', '數字'],
+        answer: 1, explain: '首先要睇標題同圖例，了解數據嘅類別同單位。' },
+      { type: 'fill', q: '求生者 90 分，監管者 85 分，相差______分',
+        answer: '5', explain: '90 - 85 = 5' },
+      { type: 'mcq', q: '要睇出兩個角色嘅勝率變化趨勢，用邊種圖最適合？',
+        options: ['複合棒形圖', '折線圖', '圓形圖', '棒形圖'],
+        answer: 1, explain: '折線圖最適合顯示數據隨時間嘅變化趨勢。' },
+    ]
+  },
+   {
+    id: 7, icon: '🏆', name: '最終·逃脫', color: '#ffd700',
+    characters: ['全體'],
+    questions: [
+      { type: 'mcq', q: '一個寶箱長 5 cm、闊 4 cm、高 3 cm，體積係？',
+        options: ['12 cm³', '20 cm³', '60 cm³', '120 cm³'],
+        answer: 2, explain: '5 × 4 × 3 = 60 cm³（體積計算）' },
+      { type: 'mcq', q: '3.6 ÷ 0.09 = ?',
+        options: ['0.4', '4', '36', '40'],
+        answer: 3, explain: '3.6 ÷ 0.09 = 360 ÷ 9 = 40（小數除法）' },
+      { type: 'fill', q: '8.4 + 1.6 × 3 = ______',
+        answer: '13.2', explain: '先乘後加：1.6×3=4.8，8.4+4.8=13.2（四則混合）' },
+      { type: 'mcq', q: '0.375 化成分數係？',
+        options: ['3/8', '3/4', '5/8', '7/8'],
+        answer: 0, explain: '0.375 = 375/1000 = 3/8（分數小數互化）' },
+      { type: 'mcq', q: '5 場遊戲得分：70, 80, 90, 85, 75。平均分係？',
+        options: ['75', '78', '80', '82'],
+        answer: 2, explain: '(70+80+90+85+75)÷5 = 400÷5 = 80（平均數）' },
+    ]
+  }
+];
+
+// ============== STATE ==============
+let state = {
+  currentLevel: 0,
+  completed: {},
+  stars: {},
+  answers: {}
+};
+
+function initState() {
+  const saved = localStorage.getItem('mathChallengeIDV');
+  if (saved) {
+    state = JSON.parse(saved);
+  } else {
+    state = { currentLevel: 0, completed: {}, stars: {}, answers: {} };
+    saveState();
+  }
+}
+function saveState() { localStorage.setItem('mathChallengeIDV', JSON.stringify(state)); }
+function resetProgress() {
+  state = { currentLevel: 0, completed: {}, stars: {}, answers: {} };
+  saveState();
+   render();
+}
+
+// ============== CHARACTER NAMES IN QUESTIONS ==============
+function replaceNames(text, lvl) {
+  const chars = levels[lvl].characters || [];
+  if (chars.length < 3) return text;
+  // Simple replacement - keep original text mostly
+  return text;
+}
+
+// ============== RENDER ==============
+function render() {
+  const app = document.getElementById('app');
+  let html = '';
+
+  // Header
+  html += `<div class="header"><h1>🔦 數學大挑戰</h1><div class="subtitle">—— 第Ⅴ人格·呈分試特訓 ——</div></div>`;
+
+  // Progress
+  const total = Object.keys(state.completed).length;
+  const totalQ = levels.reduce((s,l) => s + l.questions.length, 0);
+  const doneQ = Object.values(state.answers).filter(a => a !== undefined && a !== '').length;
+  const pct = Math.round((doneQ / totalQ) * 100);
+  html += `<div class="progress-container"><div class="progress-bar" style="width:${pct}%"></div></div>`;
+  html += `<div class="progress-text">破譯 ${doneQ} / ${totalQ} 條線索 · 解鎖 ${total} / 7 章</div>`;
+
+  // Level grid
+  html += `<div class="level-grid">`;
+  levels.forEach((lvl, i) => {
+    const isUnlocked = i === 0 || state.completed[i-1];
+    const isCompleted = state.completed[i];
+    const starCount = state.stars[i] || 0;
+    let cls = 'level-btn';
+    if (isCompleted) cls += ' completed';
+    else if (state.currentLevel === i) cls += ' active';
+    else if (!isUnlocked) cls += ' locked';
+    html += `<div class="${cls}" onclick="goToLevel(${i})">
+      <div class="icon">${lvl.icon}</div>
+      <div class="name">${lvl.name}</div>
+      <div class="stars">${'★'.repeat(starCount)}${'☆'.repeat(5-starCount)}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Current level card
+  const lvl = levels[state.currentLevel];
+  html += `<div class="card"><h2>${lvl.icon} 第 ${state.currentLevel+1} 章：${lvl.name}</h2>`;
+  html += `<div class="subtitle">出場角色：${lvl.characters.join('、')} · 解啱 4/5 題就過關</div>`;
+
+  lvl.questions.forEach((q, qi) => {
+    const ans = state.answers[`${state.currentLevel}_${qi}`];
+    const checked = ans !== undefined && ans !== '';
+    let correct = false;
+    if (checked) {
+      if (q.type === 'mcq') correct = parseInt(ans) === q.answer;
+      else correct = ans.toString().trim() === q.answer.toString().trim();
+    }
+    html += `<div class="question">`;
+    html += `<div class="q-text">${q.q}</div>`;
+
+    if (q.type === 'mcq') {
+      html += `<div class="options">`;
+      q.options.forEach((opt, oi) => {
+        const sel = parseInt(ans) === oi ? 'checked' : '';
+        html += `<label>
+          <input type="radio" name="q_${state.currentLevel}_${qi}" value="${oi}" ${sel} onchange="answer(${state.currentLevel},${qi},${oi})">
+          ${opt}
+        </label>`;
+      });
+      html += `</div>`;
+    } else {
+      const val = ans || '';
+      html += `<input class="fill-in" type="text" value="${val}" placeholder="輸入答案..." onchange="answer(${state.currentLevel},${qi},this.value)">`;
+    }
+
+    if (checked) {
+      html += `<div class="result ${correct ? 'correct' : 'wrong'}">
+        ${correct ? '✅ 線索破譯成功！' : '❌ 線索錯誤，再試試'}
+        <div class="explain-box">💡 ${q.explain}</div>
+      </div>`;
+    }
+    html += `</div>`;
+  });
+
+  // Level buttons
+  const qsInLevel = lvl.questions.length;
+ const ansInLevel = lvl.questions.filter((q, qi) => {
+    const a = state.answers[`${state.currentLevel}_${qi}`];
+    if (a === undefined || a === '') return false;
+    if (q.type === 'mcq') return parseInt(a) === q.answer;
+    return a.toString().trim() === q.answer.toString().trim();
+  }).length;
+  const passed = ansInLevel >= 4;
+
+  html += `<div class="flex-between mt-10">`;
+  html += `<button class="btn" onclick="prevLevel()" ${state.currentLevel === 0 ? 'disabled':''}>⬅ 上章</button>`;
+  if (passed) {
+    html += `<button class="btn btn-primary" onclick="completeLevel()">✅ 逃脫成功！下章 ➡</button>`;
+  } else {
+    html += `<button class="btn" onclick="render()">✓ 檢查線索</button>`;
+  }
+  html += `</div>`;
+  html += `</div>`;
+
+  // Final screen
+  if (state.completed[6]) {
+    const totalStars = Object.values(state.stars).reduce((a,b) => a+b, 0);
+    html += `<div class="final-screen cipher-box">
+      <div class="big-icon">🏆</div>
+      <h2>🎉 全部逃脫成功！</h2>
+      <p>你獲得咗 ${totalStars} / 35 ⭐</p>
+      <p style="color:#666;font-size:0.8em;margin-top:10px;">莊園嘅秘密已經全部解開...</p>
+      <button class="btn btn-primary mt-10" onclick="resetProgress()">🔄 重新開始</button>
+    </div>`;
+  }
+
+  // Reset
+  html += `<div class="text-center mt-10"><button class="btn" onclick="if(confirm('確定重置所有進度？'))resetProgress()" style="font-size:0.8em;color:#555;">🔄 重置進度</button></div>`;
+
+  app.innerHTML = html;
+}
+
+// ============== ACTIONS ==============
+function answer(lvl, qi, val) {
+  state.answers[`${lvl}_${qi}`] = val;
+  saveState();
+}
+
+function completeLevel() {
+  const lvl = state.currentLevel;
+  const qs = levels[lvl].questions;
+  const correct = qs.filter((q, qi) => {
+    const a = state.answers[`${lvl}_${qi}`];
+    if (a === undefined || a === '') return false;
+    if (q.type === 'mcq') return parseInt(a) === q.answer;
+    return a.toString().trim() === q.answer.toString().trim();
+  }).length;
+  state.stars[lvl] = Math.min(correct, 5);
+  state.completed[lvl] = true;
+  if (lvl < levels.length - 1) state.currentLevel = lvl + 1;
+  saveState();
+  render();
+}
+
+function goToLevel(i) {
+  const isUnlocked = i === 0 || state.completed[i-1];
+  if (isUnlocked || state.completed[i]) {
+    state.currentLevel = i;
+    saveState();
+    render();
+  }
+}
+
+function prevLevel() {
+  if (state.currentLevel > 0) {
+    state.currentLevel--;
+    saveState();
+    render();
+  }
+}
+
+// ============== INIT ==============
+initState();
+render();
+</script>
+</body>
+</html>
