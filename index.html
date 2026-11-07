@@ -62,19 +62,13 @@
     }
     @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
   
-    /* Multi-player selector: added without changing the original manor theme */
-    .player-panel { margin: 0 auto 24px; padding: 16px; border:1px solid var(--line); background:linear-gradient(180deg,rgba(13,16,22,.94),rgba(7,9,13,.90)); box-shadow:0 18px 48px var(--shadow); position:relative; overflow:hidden; }
-    .player-panel::before { content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--gold); opacity:.85; }
-    .player-label { margin:0 0 10px; color:var(--muted); text-align:center; font-size:.82rem; letter-spacing:.14em; text-transform:uppercase; }
-    .players { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-    .player-btn { appearance:none; border:1px solid rgba(201,181,138,.24); background:rgba(18,21,28,.92); color:var(--ink); padding:12px 9px; cursor:pointer; font:inherit; transition:transform .2s ease,border-color .2s ease,background .2s ease; }
-    .player-btn:hover,.player-btn:focus-visible { transform:translateY(-2px); border-color:var(--gold); outline:none; }
-    .player-btn.active { border-color:var(--gold); background:linear-gradient(180deg,rgba(85,66,37,.52),rgba(24,22,20,.92)); box-shadow:inset 0 0 0 1px rgba(183,154,98,.22); }
-    .player-icon { display:block; font-size:1.6rem; margin-bottom:4px; }
-    .player-name { display:block; font-family:Georgia,"Times New Roman",serif; font-weight:700; letter-spacing:.04em; }
-    .player-state { margin:10px 0 0; text-align:center; color:#a9a18f; font-size:.78rem; }
-    .card.disabled { opacity:.42; pointer-events:none; filter:grayscale(.35); }
-    @media (max-width:680px) { .players { grid-template-columns:repeat(2,1fr); } }
+    /* Multi-user + Adaptive Study Garden additions */
+    .player-panel,.garden-panel{margin:0 auto 24px;padding:16px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(13,16,22,.94),rgba(7,9,13,.90));box-shadow:0 18px 48px var(--shadow);position:relative;overflow:hidden}
+    .player-panel::before,.garden-panel::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--gold);opacity:.85}
+    .player-label,.garden-kicker{margin:0 0 10px;color:var(--muted);text-align:center;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase}
+    .players{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.player-btn{appearance:none;border:1px solid rgba(201,181,138,.24);background:rgba(18,21,28,.92);color:var(--ink);padding:12px 9px;cursor:pointer;font:inherit;transition:.2s}.player-btn:hover,.player-btn:focus-visible{transform:translateY(-2px);border-color:var(--gold);outline:none}.player-btn.active{border-color:var(--gold);background:linear-gradient(180deg,rgba(85,66,37,.52),rgba(24,22,20,.92));box-shadow:inset 0 0 0 1px rgba(183,154,98,.22)}.player-icon{display:block;font-size:1.6rem;margin-bottom:4px}.player-name{display:block;font-family:Georgia,"Times New Roman",serif;font-weight:700;letter-spacing:.04em}.player-state{margin:10px 0 0;text-align:center;color:#a9a18f;font-size:.78rem}.card.disabled{opacity:.42;pointer-events:none;filter:grayscale(.35)}
+    .garden-panel{display:none}.garden-panel.show{display:block}.garden-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:12px}.garden-title{margin:0;font-family:Georgia,"Times New Roman",serif;color:var(--ink);font-size:1.4rem}.garden-sub{color:var(--muted);font-size:.84rem}.lesson-list{display:grid;gap:10px}.lesson-card{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;text-decoration:none;color:var(--ink);border:1px solid rgba(155,190,127,.34);background:linear-gradient(135deg,rgba(28,44,30,.9),rgba(13,17,19,.94));padding:14px 16px;transition:.2s}.lesson-card:hover{transform:translateY(-2px);border-color:#9ebe7f}.lesson-name{font-family:Georgia,"Times New Roman",serif;font-weight:700}.lesson-meta{color:#b8c7ac;font-size:.8rem;margin-top:4px}.lesson-score{color:#d5c18d;font-weight:700;white-space:nowrap}.lesson-empty{color:var(--muted);text-align:center;padding:12px}.garden-loading{color:var(--muted)}
+    @media(max-width:680px){.players{grid-template-columns:repeat(2,1fr)}.garden-head{align-items:start;flex-direction:column}.lesson-card{grid-template-columns:1fr}}
 
   </style>
 </head>
@@ -87,12 +81,7 @@
       <div class="ornament" aria-hidden="true">✦</div>
     </header>
 
-
-    <section class="player-panel" aria-label="選擇玩家">
-      <p class="player-label">Choose Player · 選擇玩家</p>
-      <div class="players" id="players"></div>
-      <p class="player-state" id="player-state">請先選擇玩家，之後每科會帶入獨立學習身份。</p>
-    </section>
+    <section class="player-panel" aria-label="選擇玩家"><p class="player-label">Choose Player · 選擇玩家</p><div class="players" id="players"></div><p class="player-state" id="player-state">請先選擇玩家。</p></section>
 
     <section class="grid" aria-label="選擇科目">
       <a class="card chinese disabled" data-subject="chinese" href="#">
@@ -113,47 +102,32 @@
       </a>
     </section>
 
+    <section class="garden-panel" id="study-garden" aria-live="polite"><div class="garden-head"><div><p class="garden-kicker">Adaptive Recommendation</p><h2 class="garden-title" id="garden-title">🌱 學習花園</h2><div class="garden-sub" id="garden-sub">分析學習紀錄後，會喺呢度推薦需要溫習嘅內容。</div></div></div><div class="lesson-list" id="lesson-list"><div class="lesson-empty">先選擇玩家。</div></div></section>
+
     <footer>
       <div class="note">提示：每科進度會由各個遊戲獨立保存</div>
       <p>Study Games · Four subjects, one mysterious manor</p>
     </footer>
   </main>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-  (() => {
-    const USERS = [
-      {name:'Chelsea', icon:'🧭'},
-      {name:'Felix', icon:'🛡️'},
-      {name:'Rachel', icon:'🔮'},
-      {name:'Savanna', icon:'🌱'}
-    ];
-    let selected = localStorage.getItem('studyGamesUser') || '';
-    const players = document.getElementById('players');
-    const state = document.getElementById('player-state');
-    const cards = [...document.querySelectorAll('[data-subject]')];
-    function updateCards(){
-      cards.forEach(card => {
-        const subject = card.dataset.subject;
-        if(selected){
-          card.classList.remove('disabled');
-          card.href = `./${subject}/?student=${encodeURIComponent(selected)}`;
-        } else {
-          card.classList.add('disabled');
-          card.href = '#';
-        }
-      });
-      state.textContent = selected ? `目前玩家：${selected} · 每科會使用此玩家身份記錄進度` : '請先選擇玩家，之後每科會帶入獨立學習身份。';
-    }
-    function renderPlayers(){
-      players.innerHTML = USERS.map(u => `<button type="button" class="player-btn ${selected===u.name?'active':''}" data-player="${u.name}"><span class="player-icon" aria-hidden="true">${u.icon}</span><span class="player-name">${u.name}</span></button>`).join('');
-      players.querySelectorAll('[data-player]').forEach(btn => btn.addEventListener('click', () => {
-        selected = btn.dataset.player;
-        localStorage.setItem('studyGamesUser', selected);
-        renderPlayers();
-        updateCards();
-      }));
-    }
-    renderPlayers(); updateCards();
+  (()=>{
+    const USERS=[{name:'Chelsea',icon:'🧭'},{name:'Felix',icon:'🛡️'},{name:'Rachel',icon:'🔮'},{name:'Savanna',icon:'🌱'}];
+    const SB_URL='https://wxusktzdvpqxhxpyondx.supabase.co',SB_KEY='sb_publishable_5GiK7W35mbXULkBFTdctPg_YchxjQEM';
+    const LESSONS={
+      'Present perfect':{name:'🌿 Present Perfect｜園丁的完成式溫室',href:'./english/lessons/present-perfect/'},
+      'Personality adjectives':{name:'🌼 Personality Adjectives｜園丁的性格花圃',href:'./english/lessons/personality-adjectives/'}
+    };
+    let selected=localStorage.getItem('studyGamesUser')||'',sb=null;
+    const players=document.getElementById('players'),state=document.getElementById('player-state'),garden=document.getElementById('study-garden'),list=document.getElementById('lesson-list'),gtitle=document.getElementById('garden-title'),gsub=document.getElementById('garden-sub');
+    const cards=[...document.querySelectorAll('[data-subject]')];
+    function updateCards(){cards.forEach(card=>{const subject=card.dataset.subject;if(selected){card.classList.remove('disabled');card.href=`./${subject}/?student=${encodeURIComponent(selected)}`}else{card.classList.add('disabled');card.href='#'}});state.textContent=selected?`目前玩家：${selected} · 每科以獨立身份記錄進度`:'請先選擇玩家。'}
+    function renderPlayers(){players.innerHTML=USERS.map(u=>`<button type="button" class="player-btn ${selected===u.name?'active':''}" data-player="${u.name}"><span class="player-icon">${u.icon}</span><span class="player-name">${u.name}</span></button>`).join('');players.querySelectorAll('[data-player]').forEach(b=>b.addEventListener('click',()=>selectUser(b.dataset.player)))}
+    async function selectUser(name){selected=name;localStorage.setItem('studyGamesUser',name);renderPlayers();updateCards();await loadGarden()}
+    async function loadGarden(){if(!selected){garden.classList.remove('show');return}garden.classList.add('show');gtitle.textContent=`🌱 ${selected} 的學習花園`;gsub.textContent='至少3次作答而正確率低於70%的知識點，會建議溫習。';list.innerHTML='<div class="lesson-empty garden-loading">正在分析學習紀錄…</div>';
+      try{if(!sb)sb=window.supabase.createClient(SB_URL,SB_KEY);let r=await sb.from('students').select('id').ilike('name',selected).limit(1).maybeSingle();if(r.error||!r.data)throw r.error||new Error('找不到玩家');r=await sb.from('attempts').select('sub_skill,is_correct').eq('student_id',r.data.id);if(r.error)throw r.error;const m={};(r.data||[]).forEach(a=>{const k=a.sub_skill||'未分類';m[k]??={n:0,c:0};m[k].n++;if(a.is_correct)m[k].c++});const rec=Object.entries(m).filter(([k,v])=>v.n>=3&&v.c/v.n<.70&&LESSONS[k]).sort((a,b)=>a[1].c/a[1].n-b[1].c/b[1].n);if(!rec.length){const developing=Object.entries(m).filter(([,v])=>v.n<3);list.innerHTML=`<div class="lesson-empty">${(r.data||[]).length?'目前未有需要優先補課嘅已建立知識點。繼續Adaptive Practice，系統會再觀察。':'未有作答紀錄，先由English Adaptive Practice開始建立能力基線。'}</div>`;return}list.innerHTML=rec.map(([k,v])=>{const l=LESSONS[k],score=Math.round(v.c/v.n*100);return `<a class="lesson-card" href="${l.href}?student=${encodeURIComponent(selected)}"><div><div class="lesson-name">${l.name}</div><div class="lesson-meta">${v.c}/${v.n} 答啱 · 建議針對性溫習後再做變體題</div></div><div class="lesson-score">${score}% →</div></a>`}).join('')
+      }catch(e){console.error(e);list.innerHTML='<div class="lesson-empty">暫時未能讀取學習建議；科目入口仍可正常使用。</div>'}}
+    renderPlayers();updateCards();loadGarden();
   })();
   </script>
 </body>
